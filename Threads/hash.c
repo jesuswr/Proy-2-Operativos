@@ -15,13 +15,11 @@ int ht_make( hash *h , int size){
 }
 
 int ht_find( hash *h , int k ){
-	printf("busco k en %d\n",hash_function(k,h->size) );
 	return hl_find( &( h->hash_table[ hash_function(k,h->size) ] ) , k );
 }
 
 int ht_insert( hash *h , int k ){
 	int e;
-	printf("Inserto k en %d\n",hash_function(k,h->size) );
 	e = hl_insert( &( h->hash_table[ hash_function(k,h->size) ] ) , k );
 	return e;
 }
