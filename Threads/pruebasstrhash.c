@@ -18,12 +18,15 @@ int main( int argc , char **argv ){
 		scanf("%s",w);
 		str_ht_insert( h , w , a );
 	}
+	print_content(h);
 	while( 1 ){
 		scanf("%d",&a);
 		if ( a == -1 ) break;
 		w = malloc( sizeof(char)* 20);
 		scanf("%s",w);
 		a = str_ht_find( h , w , a );
+		printf("ANTES HABIAN %d\n", a);
 	}
+	print_content(h);
 
 }
