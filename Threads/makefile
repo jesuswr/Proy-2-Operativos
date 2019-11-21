@@ -1,11 +1,40 @@
-pruebrecdir: pruebas_recorrer_dir.o utilities.o
-	gcc -o pruebrecdir pruebas_recorrer_dir.o utilities.o
+pruebasstrhash: pruebasstrhash.o str_hash.o str_ht_list.o
+	gcc -o pruebasstrhash pruebasstrhash.o str_hash.o str_ht_list.o
 
-pruebas_recorrer_dir.o: pruebas_recorrer_dir.c utilities.h
-	gcc -c -ansi -Wpedantic pruebas_recorrer_dir.c
+pruebasstrhash.o: pruebasstrhash.c str_hash.h str_ht_list.h
+	gcc -c -ansi -Wpedantic pruebasstrhash.c
 
-utilities.o: utilities.c utilities.h
-	gcc -c -ansi -Wpedantic utilities.c
+str_hash.o: str_hash.c str_hash.h str_ht_list.h
+	gcc -c -ansi -Wpedantic str_hash.c
+
+str_ht_list.o: str_ht_list.c str_ht_list.h
+	gcc -c -ansi -Wpedantic str_ht_list.c
+
+#pruebastrlist: pruebas_lista_string.o str_ht_list.o
+#	gcc -o pruebastrlist pruebas_lista_string.o str_ht_list.o
+
+#pruebas_lista_string.o: pruebas_lista_string.c str_ht_list.h
+#	gcc -c -ansi -Wpedantic pruebas_lista_string.c
+
+#str_ht_list.o: str_ht_list.c str_ht_list.h
+#	gcc -c -ansi -Wpedantic str_ht_list.c
+
+# MAKEFILE PARA PROBAR EL RECORRIDO DE DIRECTORIOS
+#pruebrecdir: pruebas_recorrer_dir.o utilities.o hash.o hash_list.o
+#	gcc -o pruebrecdir pruebas_recorrer_dir.o utilities.o hash.o hash_list.o
+
+#pruebas_recorrer_dir.o: pruebas_recorrer_dir.c utilities.h hash.h hash_list.h
+#	gcc -c -ansi -Wpedantic pruebas_recorrer_dir.c
+
+#utilities.o: utilities.c utilities.h
+#	gcc -c -ansi -Wpedantic utilities.c
+
+
+#hash_list.o : hash_list.c hash_list.h
+#	gcc -c -ansi -Wpedantic hash_list.c
+
+#hash.o : hash.c hash.h hash_list.h
+#	gcc -c -ansi -Wpedantic hash.c
 
 # Makefile para probar la tabla de hash
 #prueb : pruebas.o hash_list.o hash.o
