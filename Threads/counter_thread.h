@@ -3,7 +3,7 @@
 #define _COUNTER_THREAD_
 
 typedef struct {
-	int n, MOD;
+	int n, MOD, begin;
 	char ** file;
 } INPUT;
 

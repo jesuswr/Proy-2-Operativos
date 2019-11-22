@@ -7,7 +7,7 @@
 
 void counter_thread(void * input){
 
-	int n, MOD;
+	int n, MOD, begin;
 	char ** file;
 
 	FILE * fp;
@@ -21,9 +21,12 @@ void counter_thread(void * input){
 
 	n = input.n;
 	MOD = input.mod;
+	begin = input.begin;
 	file = input.file;
 
-	for(i = MOD; i<n; i+=MOD){
+	str_ht_make(&H);
+
+	for(i = begin; i<n; i+=MOD){
 		
 		fp = fopen(file[i],"r");
 
