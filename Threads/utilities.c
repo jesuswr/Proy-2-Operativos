@@ -82,3 +82,12 @@ pair traverse_dir( char* dir_name , char** txt_names , int occupied ,
   	ret.s = occupied;
   	return ret;
 }
+
+int word_frec_comparator( const void *p , const void *q ){
+	pair_2 *l , *r;
+	l = ( pair_2 * )p;
+	r = ( pair_2 * )q;
+	if ( l->c > r->c ) return -1;
+	else if ( l->c < r->c ) return 1;
+	return ( strcmp( l->w , r->w ) );
+}

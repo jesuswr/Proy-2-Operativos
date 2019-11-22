@@ -1,14 +1,38 @@
-pruebasstrhash: pruebasstrhash.o str_hash.o str_ht_list.o
-	gcc -o pruebasstrhash pruebasstrhash.o str_hash.o str_ht_list.o
+pruebstrlist: prueba_str_list.o str_list.o
+	gcc -o pruebstrlist prueba_str_list.o str_list.o
 
-pruebasstrhash.o: pruebasstrhash.c str_hash.h str_ht_list.h
-	gcc -c -ansi -Wpedantic pruebasstrhash.c
+prueba_str_list.o: prueba_str_list.c str_list.h
+	gcc -c prueba_str_list.c 
 
-str_hash.o: str_hash.c str_hash.h str_ht_list.h
-	gcc -c -ansi -Wpedantic str_hash.c
+str_list.o: str_list.c str_list.h
+	gcc -c str_list.c
 
-str_ht_list.o: str_ht_list.c str_ht_list.h
-	gcc -c -ansi -Wpedantic str_ht_list.c
+#pruebassort: pruebas_sort.o utilities.o hash.o hash_list.o
+#	gcc -o pruebassort pruebas_sort.o utilities.o hash.o hash_list.o
+
+#pruebas_sort.o: pruebas_sort.c utilities.h
+#	gcc -c pruebas_sort.c
+
+#utilities.o: utilities.c utilities.h hash.h
+#	gcc -c -ansi -Wpedantic utilities.c
+
+#hash_list.o : hash_list.c hash_list.h
+#	gcc -c -ansi -Wpedantic hash_list.c
+
+#hash.o : hash.c hash.h hash_list.h
+#	gcc -c -ansi -Wpedantic hash.c
+
+#pruebasstrhash: pruebasstrhash.o str_hash.o str_ht_list.o
+#	gcc -o pruebasstrhash pruebasstrhash.o str_hash.o str_ht_list.o
+
+#pruebasstrhash.o: pruebasstrhash.c str_hash.h str_ht_list.h
+#	gcc -c -ansi -Wpedantic pruebasstrhash.c
+
+#str_hash.o: str_hash.c str_hash.h str_ht_list.h
+#	gcc -c -ansi -Wpedantic str_hash.c
+
+#str_ht_list.o: str_ht_list.c str_ht_list.h
+#	gcc -c -ansi -Wpedantic str_ht_list.c
 
 #pruebastrlist: pruebas_lista_string.o str_ht_list.o
 #	gcc -o pruebastrlist pruebas_lista_string.o str_ht_list.o
