@@ -1,9 +1,9 @@
 /*
-*	File:			list.c
-*	Description:	file that contains the implementation of the
-*					linked list and its functions
-*	Author:			Jesus Wahrman 15-11540
-*	Date:			29 / 07 / 19
+*	File:			str_list.c
+*	Author: 		Jesus Wahrman 15-11540 , Neil Villamizar 15-11523
+*	Description:	file that contains the implementation of some functions 
+*					of a string list
+*	Date:			23 / 11 / 19
 */
 
 #include <stdio.h>
@@ -14,11 +14,11 @@
 /*
 * Function: insert
 * --------------------
-* 	Inserts the given node in the first position of the given list by
+* 	Inserts the given word in the first position of the given list by
 *	moving its pointers and updates the size of the list
 *	
 * 	l: pointer to a list
-*	n: pointer to a node
+*	n: pointer to a word
 */
 int str_list_insert( str_list *l , char* w )
 {
@@ -29,6 +29,7 @@ int str_list_insert( str_list *l , char* w )
 	l->size = l->size + 1;
 	n->next = l->head;
 	l->head = n;
+	return 0;
 }
 
 

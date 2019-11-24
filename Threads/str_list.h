@@ -1,9 +1,9 @@
 /*
-*	File:			list.h
-*	Description:	header file that contains the signatures of the functions
-*					and structures of the linked list
-*	Author:			Jesus Wahrman 15-11540
-*	Date:			29 / 07 / 19
+*	File:			str_list.h
+*	Author: 		Jesus Wahrman 15-11540 , Neil Villamizar 15-11523
+*	Description:	file that contains the signature of some functions 
+*					and structures of a string list
+*	Date:			23 / 11 / 19
 */
 
 
@@ -22,12 +22,12 @@ typedef struct {
 } str_list;
 
 /*
-* Function: insert
+* Function: str_list_insert
 * --------------------------
-*	Inserts the given node in the given list
+*	Inserts the given wotd in the given list
 *
 * 	l: pointer to a list
-*	n: pointer to a node
+*	n: pointer to a word
 */
 int str_list_insert( str_list *l , char* w );
 

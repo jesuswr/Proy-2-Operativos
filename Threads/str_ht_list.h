@@ -1,9 +1,9 @@
 /*
-*	File:			list.h
-*	Description:	header file that contains the signatures of the functions
-*					and structures of the linked list
-*	Author:			Jesus Wahrman 15-11540
-*	Date:			29 / 07 / 19
+*  File:       	str_ht_list.h
+*  Author:     	Jesus Wahrman 15-11540 , Neil Villamizar 15-11523
+*  Description: file that contains the signatures of the functions
+*               used by the string hash list
+*  Date:      	23 / 11 / 19
 */
 
 
@@ -22,18 +22,20 @@ typedef struct {
 } str_ht_list;
 
 /*
-* Function: insert
+* Function: str_ht_list_insert
 * --------------------------
-*	Inserts the given node in the given list
+*	Inserts the given word in the given list
 *
 * 	l: pointer to a list
-*	n: pointer to a node
+*	n: pointer to a word
+*
+*	returns 0 on success and -1 on failure
 */
 int str_ht_list_insert( str_ht_list *l , char *n , int k );
 
 
 /*
-* Function: make_list
+* Function: str_ht_list_make_list
 * --------------------------
 * 	Gets the pointer to the address of a memory block allocated for a list
 *	and initializes its values
@@ -43,17 +45,18 @@ int str_ht_list_insert( str_ht_list *l , char *n , int k );
 void str_ht_list_make_list( str_ht_list *l );
 
 /*
-* Function: find
+* Function: str_ht_list_find
 * --------------------------
 * 	Looks for the given word in the given list, if it finds it, it updates
-*	the number of repetitions of that word by 1 and returns the new number of 
+*	the number of repetitions of that word by k and returns the old number of 
 *	repetitions for that word. If it doesnt find it, returns 0.
 *
 * 	l: pointer lo a list
 *	c: pointer to an array of char
+*	k: ammount to add to the rep count of the words
 *
 *	returns: 0 if the words is not in the list or an int that represents
-*			 the number of times that word appears in the list plus 1
+*			 the number of times that word appeared before updating
 */
 int str_ht_list_find( str_ht_list *l , char *c , int k );
 
