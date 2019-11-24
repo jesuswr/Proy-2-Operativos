@@ -33,6 +33,9 @@
 char* make_path( char* path , char* name ){
 	char *ret = 
 		(char *)malloc( strlen(path) + strlen(name)  + 2 );
+    if ( ret == NULL ){
+        return NULL;
+    }
 	if ( strlen(path) == 0 ){
 		strcpy( ret , name );	
 	}
@@ -79,8 +82,18 @@ pair traverse_dir( char* dir_name , char** txt_names , int occupied ,
   			continue;
   	
   		name = make_path( dir_name , de->d_name );
+        if ( name == NULL ){
+            ret.f = NULL;
+            ret.s = -1;
+            return ret;
+        }
   		e = lstat( name , &sb );
-  		
+  		if ( e < 0 ){
+            ret.f = NULL;
+            ret.s = -1;
+            return ret;
+        }
+
   		if ( ( sb.st_mode & __S_IFDIR ) == __S_IFDIR ){
   			/* If a directory was found, we traverse it and update values */
   			get = traverse_dir( name, txt_names , occupied , size , h);

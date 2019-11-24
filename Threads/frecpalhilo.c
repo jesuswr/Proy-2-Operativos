@@ -47,7 +47,8 @@ void* get_txt( void *arg ){
 	*p = traverse_dir( dir_name , file_names , 0 , &size , &h );
 
 	if ( p->f == NULL ){
-		return NULL;
+		printf("Error moving through the given directory.\n");
+		exit (-1);
 	} 
 
 	pthread_exit( p );
@@ -86,8 +87,11 @@ void* count_words( void *arg ){
 	e = str_ht_make( &H );
 	if ( e < 0 ){
 		printf("Error allocating memory.\n");
-		return NULL;
+		exit(-1);
 	}
+
+	free( inp );
+
 	make_str_list( &l );
 
 	for( i = begin; i < n ; i += mod ){
@@ -107,12 +111,12 @@ void* count_words( void *arg ){
 				e = str_ht_insert( &H , aux_w , 1 );
 				if ( e < 0 ){
 					printf("Error allocating memory.\n");
-					return NULL;
+					exit(-1);
 				}
 				e = str_list_insert( &l , aux_w );
 				if ( e < 0 ){
 					printf("Error allocating memory.\n");
-					return NULL;
+					exit(-1);
 				}
 			}
 		}
@@ -123,7 +127,7 @@ void* count_words( void *arg ){
 	cnt = malloc( sizeof(pair_2)*(l.size) );
 	if ( cnt == NULL ){
 		printf("Error allocating memory.\n");
-		return NULL;
+		exit(-1);
 	}
 
 	ind = 0;
@@ -141,7 +145,7 @@ void* count_words( void *arg ){
 	retval = malloc( sizeof(ret) );
 	if ( retval == NULL ){
 		printf("Error allocating memory.\n");
-		return NULL;
+		exit(-1);
 	}
 
 	retval->cnt = cnt;
@@ -189,15 +193,15 @@ int main( int argc , char **argv ){
 		return -1;
 	}
 
+	/* This thread will look for the txts and return them */
 	e = pthread_create( &txt_thread , NULL , get_txt , argv[2] );
 
 	if ( e < 0 ){
-		printf("Error allocating memory.\n");
+		printf("Error creating get_txt thread.\n");
 		return -1;
 	}
 
 	e = pthread_join( txt_thread , (void **)&p_aux );
-
 
 	if ( e < 0 ){
 		printf("Error joining get_txt thread.\n");
@@ -205,14 +209,13 @@ int main( int argc , char **argv ){
 	}
 
 	p_aux = (pair *)p_aux;
-	if ( p_aux == NULL ){
-		printf("Error in the given directory.\n");
-		return -1;
-	}
 	n_txt = p_aux->s;
 	txt_names = p_aux->f;
 	free(p_aux);
 
+	/* If the number of threads given is greater than the number of txt files
+	we will only use 1 thread for file, so the number of threads will become
+	smaller */
 	if ( n_threads > n_txt ) n_threads = n_txt;
 	
 	count_threads = malloc( sizeof(pthread_t) * n_threads );
@@ -233,6 +236,8 @@ int main( int argc , char **argv ){
 		inp->begin = i;
 		inp->file = txt_names;
 
+		/* Here we create the counter threads and assing them the corresponding
+		txts */
 		e = pthread_create( &count_threads[i] , NULL , count_words , (void *)inp );
 		if ( e < 0 ){
 			printf("Error creating count_words thread.\n");
@@ -240,6 +245,7 @@ int main( int argc , char **argv ){
 		}
 	}
 
+	/* Here we allocate space for the counter threads output */
 	count_rets = malloc( sizeof(ret*) * n_threads );
 	if ( count_rets == NULL ){
 		printf("Error allocating memory.\n");
@@ -253,10 +259,6 @@ int main( int argc , char **argv ){
 			return -1;
 		}
 		count_rets[i] = (ret*)count_rets[i];
-		if ( count_rets[i] == NULL ){
-			printf("Error in the counting threads.\n");
-			return -1;
-		}
 	}
 
 	e = str_ht_make( &h );
@@ -266,11 +268,15 @@ int main( int argc , char **argv ){
 	}
 	make_str_list( &l );
 
+	/* In this loop we will take all the words given by the counter threads
+	and store them in a hash table where we will update their frecuency and in 
+	a list so we easily know how many and what words we have */
 	for( i = 0 ; i < n_threads ; i++ ){
 		for( j = 0 ; j < count_rets[i]->size ; j++ ){
-			
+			/* If the word already is in the hash, update its rep count */
 			cont = str_ht_find( &h , count_rets[i]->cnt[j].w , count_rets[i]->cnt[j].c);
 			
+			/* Else insert it in the hash and in the list */
 			if ( cont == 0 ){
 				e = str_ht_insert( &h , count_rets[i]->cnt[j].w , count_rets[i]->cnt[j].c);
 				if ( e < 0 ){
@@ -302,17 +308,18 @@ int main( int argc , char **argv ){
 
 	ind = 0;
 	it = l.head;
-
+	/* Here we pass the words with their rep count from the hash and list, 
+	to an array so we can sort it using c qsort, and free the list nodes */
 	while( it != NULL ){
 		words[ ind ].w = it->word;
 		words[ ind ].c = str_ht_find( &h , it->word , 0 );
-
 		ind++;
 		it2 = it;
 		it = it->next;
 		free(it2);
 	}
 
+	/* Free the hash table space */
 	for( i = 0 ; i < 10007 ; i++ ){
 		np = (h.hash_table[i]).head;
 		while( np != NULL ){
@@ -321,9 +328,9 @@ int main( int argc , char **argv ){
 			free(np2);
 		}
 	}
-
 	free( h.hash_table );
 
+	/* Sort the words with a custom comparator, so we get the expected order */
 	qsort( words , n_words , sizeof( pair_2 ) , word_frec_comparator );
 
 	for( i = 0 ; i < n_words ; i++ ){
