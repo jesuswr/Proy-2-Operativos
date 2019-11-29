@@ -214,7 +214,7 @@ int str_to_int( char* c  ){
 *
 *		returns 0 in case of success or -1 in case of failure		
 */
-int write_aux(int fd, void * buf,  int len){
+int write_aux(int fd, unsigned char * buf,  int len){
 	int e , len2 = 0;
 	while(len2 < len){
 		e = write(fd, buf + len2, len-len2);
@@ -236,7 +236,7 @@ int write_aux(int fd, void * buf,  int len){
 *
 *		returns 0 in case of success or -1 in case of failure		
 */
-int read_aux( int fd , void * buf , int len ){
+int read_aux( int fd , unsigned char * buf , int len ){
 	int l2, e;
 	l2 = 0;
 	while ( l2 < len ){

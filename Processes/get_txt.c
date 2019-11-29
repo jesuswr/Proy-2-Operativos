@@ -37,6 +37,7 @@ int main( int argc , char **argv ){
 	p = (pair *) malloc( sizeof(pair) );
 	errorp(p,NULL);
 
+
 	size = 128;
 	ht_make( &h , HASH_SIZE );
 	dir_name = argv[1];
@@ -47,11 +48,13 @@ int main( int argc , char **argv ){
 	*p = traverse_dir( dir_name , file_names , 0 , &size , &h );
 	errorp(p->f, "Error moving through the given directory");
 
+
 	/* Return names of the found txt files using a pipe in file descriptor 1 */
 	
 	/* p->s : number of files to return  */
 	e = write_aux(1, &(p->s), 4);
 	error(e, NULL);
+
 
 	/* (p->f)[i] : txt file name */
 	for( i = 0; i < p->s; ++i){

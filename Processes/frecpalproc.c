@@ -54,9 +54,12 @@ int main( int argc , char **argv ){
 		return -1;
 	}
 
+	/* Create a non named pipe for reading the work of get_txt process */
+
 	e = pipe(fd);
 
 	error(e, "Error creating a non nominal pipe");
+
 
 	/* This process will look for the txts and return them */
 	e = fork();
@@ -66,7 +69,8 @@ int main( int argc , char **argv ){
 	if(e == 0){
 		/* child */
 		close(fd[0]);
-		dup2(1, fd[1]);
+		/*dup2(1, fd[1]);*/
+		dup2(fd[1], 1);
 		close(fd[1]);
 
 		e = execl("get_txt", "get_txt", argv[2], NULL);
@@ -112,7 +116,7 @@ int main( int argc , char **argv ){
 	e = mkfifo("myfifo", 0666);
 	error(e, NULL);
 
-	fd_fifo = open("myfifo", O_RDONLY);
+	/*fd_fifo = open("myfifo", O_RDONLY);*/
 
 	/* Create named semaphore for counter processes coordination while writing in named pipe */
 	sem_unlink("mySmph");
@@ -171,10 +175,14 @@ int main( int argc , char **argv ){
 		
 	}
 
+	fd_fifo = open("myfifo", O_RDONLY);
+
 	e = str_ht_make( &h );
 	error(e, "Error allocating memory");
 	
 	make_str_list( &l );
+
+	i = 0;
 
 	/* In this loop we will take all the words given by the counter processes
 	and store them in a hash table where we will update their frecuency and in 
@@ -258,7 +266,7 @@ int main( int argc , char **argv ){
 	qsort( words , n_words , sizeof( pair_2 ) , word_frec_comparator );
 
 	for( i = 0 ; i < n_words ; i++ ){
-		printf("%d %s\n", words[i].c , words[i].w );
+		printf("%s %d\n", words[i].w, words[i].c );
 	}
 
 	return 0;

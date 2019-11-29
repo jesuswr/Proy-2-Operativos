@@ -41,4 +41,4 @@ error_handler.o : error_handler.c error_handler.h
 
 clean:
 	if find *.o; then rm *.o; fi
-	if find frecpalhilo; then rm frecpalhilo; fi
+	if find frecpalproc; then rm frecpalproc; fi
