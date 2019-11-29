@@ -2,7 +2,7 @@
 *  File:       	frecpalproc.c
 *  Author:     	Jesus Wahrman 15-11540 , Neil Villamizar 15-11523
 *  Description: file that contains the implementation of the frecpal with  
-*               threads main
+*               processes main
 *  Date:      	23 / 11 / 19
 */
 
@@ -10,13 +10,18 @@
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <semaphore.h>
+#include <sys/wait.h>
+#include <sys/types.h> 
+#include <fcntl.h>
+#include <sys/stat.h>
 #include "utilities.h"
 #include "hash.h"
 #include "str_hash.h"
 #include "str_list.h"
 #include "hash_list.h"
 #include "str_ht_list.h"
-#include "counter_thread.h"
+#include "error_handler.h"
 
 #define MAX_WORD_LEN 100
 #define HASH_SIZE 10007
@@ -24,16 +29,15 @@
 
 int main( int argc , char **argv ){
 
-	int n_proc, n_txt, e, i, j,
-	    cont, ind, n_words, fd[2], word_len;
+	int n_proc, n_txt, e, i, j, aux, cnt, status,
+	    cont, ind, n_words, fd[2], word_len, fd_fifo;
 
 	char **txt_names;
 	char *** txt_of_proc;
-	pair *p_aux;
+	char * word;
+	sem_t *semaphore;
 	str_hash h;
-	input *inp;
 	str_list l;
-	ret **count_rets;
 	str_node *it, *it2;
 	str_ht_list_node *np, *np2;
 	pair_2 *words;
@@ -52,18 +56,12 @@ int main( int argc , char **argv ){
 
 	e = pipe(fd);
 
-	if(e < 0){
-		printf("Error creating a no nominal pipe\n");
-		return -1;
-	}
+	error(e, "Error creating a non nominal pipe");
 
 	/* This process will look for the txts and return them */
 	e = fork();
 
-	if ( e < 0 ){
-		printf("Error creating get_txt process.\n");
-		return -1;
-	}
+	error(e, "Error creating get_txt process");
 
 	if(e == 0){
 		/* child */
@@ -71,7 +69,10 @@ int main( int argc , char **argv ){
 		dup2(1, fd[1]);
 		close(fd[1]);
 
-		execl("get_txt", "get_txt", argv[2], NULL);
+		e = execl("get_txt", "get_txt", argv[2], NULL);
+
+		error(e, "Error in execution of \"get_txt\"");
+
 	}
 	/* father continue */
 	close(fd[1]);
@@ -79,27 +80,50 @@ int main( int argc , char **argv ){
 	/* Wait the child process */
 	e = wait(&e);
 
-	if(e < 0){
-		printf("Error in child process get_txt.\n");
-		return -1;
-	}
+	error(e, "Error in child process get_txt");
 
 	/* Get txt files names from child process via pipe */
 
-	e = read(fd[0], &n_txt, 4);
+	e = read_aux(fd[0], &n_txt, 4);
+
+	error(e, NULL);
 
 	txt_names = (char **) malloc(sizeof(char *) * n_txt);
 
+	errorp(txt_names, NULL);
+
 	for( i = 0; i < n_txt; ++i){
 
-		read(fd[0], &word_len, 4);
+		e = read_aux(fd[0], &word_len, 4);
+		error(e, NULL);
+
 		txt_names[i] = (char *) malloc(sizeof(char) * (word_len + 1));
-		read(fd[0], txt_names[i], word_len + 1);
+		errorp(txt_names[i], NULL);
+
+		e = read_aux(fd[0], txt_names[i], word_len + 1);
+		error(e, NULL);
 
 	}
 
 	close(fd[0]);
 
+	/* Create named pipe for reading the work of the counter processes */
+	unlink("myfifo");
+	e = mkfifo("myfifo", 0666);
+	error(e, NULL);
+
+	fd_fifo = open("myfifo", O_RDONLY);
+
+	/* Create named semaphore for counter processes coordination while writing in named pipe */
+	sem_unlink("mySmph");
+	semaphore = sem_open("mySmph", O_CREAT, 0666, 1);
+	if (semaphore == SEM_FAILED) {
+        perror("sem_open(3) failed");
+        exit(-1);
+    }
+
+    e = sem_close(semaphore);
+	error(e, NULL);
 
 	/* If the number of processes given is greater than the number of txt files
 	we will only use 1 thread for file, so the number of threads will become
@@ -109,16 +133,23 @@ int main( int argc , char **argv ){
 	/* We store the files names of the txt's that every counter process in their corresponding array */
 	
 	txt_of_proc = (char ***) malloc(sizeof(char **) * n_proc);
+	errorp(txt_of_proc, NULL);
 
 	for( i = 0 ; i < n_proc ; ++i ){
-		txt_of_proc[i] = (char **) malloc(sizeof(char *) * (n_txt / n_proc + ((n_txt % n_proc) > i + 1) + 2) );
-		txt_of_proc[i][0] = int_to_str(n_txt / n_proc + ((n_txt % n_proc) > i + 1) + 1);
+		
+		txt_of_proc[i] = (char **) malloc(sizeof(char *) * (n_txt / n_proc + ((n_txt % n_proc) > i + 1) + 1) );
+		errorp(txt_of_proc[i], NULL);
+
 		txt_of_proc[i][n_txt / n_proc + ((n_txt % n_proc) > i + 1)] = NULL;
+
 	}
 
 	for( i = 0 ; i < n_txt ; ++i ){
-		txt_of_proc[i % n_proc][i / n_proc + 1] = (char *) malloc(sizeof(char) * (strlen(txt_names[i]) + 1) );
-		strcpy(txt_of_proc[i % n_proc][i / n_proc + 1], txt_names[i]);
+
+		txt_of_proc[i % n_proc][i / n_proc] = (char *) malloc(sizeof(char) * (strlen(txt_names[i]) + 1) );
+		errorp(txt_of_proc[i % n_proc][i / n_proc], NULL);
+		strcpy(txt_of_proc[i % n_proc][i / n_proc], txt_names[i]);
+
 	}
 
 	for( i = 0 ; i < n_proc ; ++i ){
@@ -128,88 +159,76 @@ int main( int argc , char **argv ){
 
 		e = fork();
 
-		if ( e < 0 ){
-			printf("Error creating count_words process.\n");
-			return -1;
-		}
+		error(e, "Error creating count_words process");
 
 		if( e == 0){
 			/* child */
 			e = execv("count_words", txt_of_proc[i]);
 
-			if( e < 0 ){
-				printf("Error in execution of \"count_words\".\n");
-				return -1;
-			}
+			error(e, "Error in execution of \"count_words\"");
 
 		}
 		
 	}
 
-	/* DON'T FORGET TO WAIT THE CHILDS */
-	/* DON'T FORGET TO CODE "int_to_str" SOMEWHERE */
-	/* ****************************************** HASTA AQUI LLEGUE, TENGO SUE;O ********************************************************* */
-
-	/* Here we allocate space for the counter threads output */
-	count_rets = malloc( sizeof(ret*) * n_proc );
-	if ( count_rets == NULL ){
-		printf("Error allocating memory.\n");
-		return -1;
-	}
-
-	for( i = 0 ; i < n_proc ; i++ ){
-		e = pthread_join( count_threads[i] ,(void **)&count_rets[i] );
-		if ( e < 0 ){
-			printf("Error joining count_rets thread.\n");
-			return -1;
-		}
-		count_rets[i] = (ret*)count_rets[i];
-	}
-
 	e = str_ht_make( &h );
-	if ( e < 0 ){
-		printf("Error allocating memory.\n");
-		return -1;
-	}
+	error(e, "Error allocating memory");
+	
 	make_str_list( &l );
 
-	/* In this loop we will take all the words given by the counter threads
+	/* In this loop we will take all the words given by the counter processes
 	and store them in a hash table where we will update their frecuency and in 
 	a list so we easily know how many and what words we have */
-	for( i = 0 ; i < n_proc ; i++ ){
-		for( j = 0 ; j < count_rets[i]->size ; j++ ){
-			/* If the word already is in the hash, update its rep count */
-			cont = str_ht_find( &h , count_rets[i]->cnt[j].w , count_rets[i]->cnt[j].c);
+	while( i < n_proc ){
+
+		read_aux(fd_fifo, &aux, 4);
+
+		if(aux == -1){
+			i++;
+			continue;
+		}
+
+		word = (char *) malloc(sizeof(char) * (aux + 1));
+
+		read_aux(fd_fifo, word, aux + 1);
+
+		read_aux(fd_fifo, &cnt, 4);
+		
+		/* If the word already is in the hash, update its rep count */
+		cont = str_ht_find( &h , word , cnt);
+		
+		/* Else insert it in the hash and in the list */
+		if ( cont == 0 ){
+
+			e = str_ht_insert( &h , word , cnt);
+			error(e, "Error allocating memory");
 			
-			/* Else insert it in the hash and in the list */
-			if ( cont == 0 ){
-				e = str_ht_insert( &h , count_rets[i]->cnt[j].w , count_rets[i]->cnt[j].c);
-				if ( e < 0 ){
-					printf("Error allocating memory.\n");
-					return -1;
-				}
-				
-				e = str_list_insert( &l , count_rets[i]->cnt[j].w  );
-				if ( e < 0 ){
-					printf("Error allocating memory.\n");
-					return -1;
-				}
-			}
+			e = str_list_insert( &l , word  );
+			error(e, "Error allocating memory");
+		
 		}
 	}
 
-	free( count_threads );
-	for( i = 0 ; i < n_txt ; i++ ){
+	for( i = 0; i < n_proc; ++i ){
+		e = wait(&status);
+		error(e, NULL);
+		if( WIFEXITED(status) ) error(WEXITSTATUS(status), NULL);
+	}
+
+	e = sem_unlink("mySmph");
+	error(e, NULL);
+
+	close(fd_fifo);
+	unlink("myfifo");
+
+	for( i = 0 ; i < n_txt ; ++i ){
 		free( txt_names[i] );
 	}
 	free( txt_names );
 
 	n_words = l.size;
 	words = malloc( sizeof(pair_2)*n_words );
-	if ( words == NULL ){
-		printf("Error allocating memory.\n");
-		return -1;
-	}
+	errorp(words, "Error allocating memory");
 
 	ind = 0;
 	it = l.head;
