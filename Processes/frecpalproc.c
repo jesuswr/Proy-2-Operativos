@@ -189,7 +189,9 @@ int main( int argc , char **argv ){
 	a list so we easily know how many and what words we have */
 	while( i < n_proc ){
 
-		read_aux(fd_fifo, &aux, 4);
+		e = read_aux(fd_fifo, &aux, 4);
+
+		if(!e) continue;
 
 		if(aux == -1){
 			i++;
