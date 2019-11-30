@@ -22,6 +22,8 @@
 #define MAX_WORD_LEN 100
 #define HASH_SIZE 10007
 
+pthread_mutex_t mtx;
+pthread_t end = 0;
 
 /*
 *  Function : get_txt
@@ -163,6 +165,10 @@ void* count_words( void *arg ){
 
 	free( H.hash_table );
 
+	pthread_mutex_lock(&mtx);
+
+	end = pthread_self();
+
 	pthread_exit( retval );
 }
 
@@ -170,7 +176,7 @@ void* count_words( void *arg ){
 int main( int argc , char **argv ){
 
 	int n_threads, n_txt, e, i, j, cont, ind, n_words;
-	pthread_t *count_threads, txt_thread;
+	pthread_t *count_threads, txt_thread, thr_id;
 	char **txt_names;
 	pair *p_aux;
 	str_hash h;
@@ -213,6 +219,8 @@ int main( int argc , char **argv ){
 	txt_names = p_aux->f;
 	free(p_aux);
 
+	pthread_mutex_init(&mtx, NULL);
+
 	/* If the number of threads given is greater than the number of txt files
 	we will only use 1 thread for file, so the number of threads will become
 	smaller */
@@ -252,14 +260,22 @@ int main( int argc , char **argv ){
 		return -1;
 	}
 
-	for( i = 0 ; i < n_threads ; i++ ){
-		e = pthread_join( count_threads[i] ,(void **)&count_rets[i] );
+	i = 0;
+
+	while(i < n_threads){
+		while(!end);
+		thr_id = end;
+		end = 0;
+		e = pthread_join( thr_id ,(void **)&count_rets[i] );
 		if ( e < 0 ){
 			printf("Error joining count_rets thread.\n");
 			return -1;
 		}
 		count_rets[i] = (ret*)count_rets[i];
+		i++;
+		pthread_mutex_unlock(&mtx);
 	}
+
 
 	e = str_ht_make( &h );
 	if ( e < 0 ){
