@@ -1,4 +1,10 @@
-all: frecpalproc count_words get_txt
+all: frecpalproc count_words get_txt frecpalhilo
+
+frecpalhilo: frecpalhilo.o utilities.o hash.o str_hash.o str_list.o str_ht_list.o hash_list.o error_handler.o
+	gcc -o frecpalhilo -pthread frecpalhilo.o utilities.o hash.o str_hash.o str_list.o str_ht_list.o hash_list.o error_handler.o
+
+frecpalhilo.o: frecpalhilo.c utilities.h hash.h str_hash.h str_list.h 
+	gcc -c -ansi -Wpedantic -pthread frecpalhilo.c
 
 frecpalproc: frecpalproc.o utilities.o hash.o str_hash.o str_list.o str_ht_list.o hash_list.o error_handler.o
 	gcc -o frecpalproc -pthread -lpthread frecpalproc.o utilities.o hash.o str_hash.o str_list.o str_ht_list.o hash_list.o error_handler.o
@@ -42,3 +48,6 @@ error_handler.o : error_handler.c error_handler.h
 clean:
 	if find *.o; then rm *.o; fi
 	if find frecpalproc; then rm frecpalproc; fi
+	if find get_txt; then rm get_txt; fi
+	if find count_words; then rm count_words; fi
+	if find frecpalhilo; then rm frecpalhilo; fi
