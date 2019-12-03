@@ -69,7 +69,7 @@ int main( int argc , char **argv ){
 	if(e == 0){
 		/* child */
 		close(fd[0]);
-		/*dup2(1, fd[1]);*/
+		
 		dup2(fd[1], 1);
 		close(fd[1]);
 
@@ -81,10 +81,7 @@ int main( int argc , char **argv ){
 	/* father continue */
 	close(fd[1]);
 
-	/* Wait the child process */
-	e = wait(&e);
-
-	error(e, "Error in child process get_txt");
+	
 
 	/* Get txt files names from child process via pipe */
 
@@ -110,6 +107,10 @@ int main( int argc , char **argv ){
 	}
 
 	close(fd[0]);
+	/* Wait the child process */
+	e = wait(&e);
+
+	error(e, "Error in child process get_txt");
 
 	/* Create named pipe for reading the work of the counter processes */
 	unlink("myfifo");
@@ -135,21 +136,21 @@ int main( int argc , char **argv ){
 
 	/* We store the files names of the txt's that every counter process in their corresponding array */
 	
-	txt_of_proc = (char ***) malloc(sizeof(char **) * n_proc);
+	txt_of_proc = (char ***) malloc(sizeof(char **) *n_proc);
 	errorp(txt_of_proc, NULL);
 
 	for( i = 0 ; i < n_proc ; ++i ){
 		
-		txt_of_proc[i] = (char **) malloc(sizeof(char *) * (n_txt / n_proc + ((n_txt % n_proc) > i + 1) + 1) );
+		txt_of_proc[i] = (char **) malloc(sizeof(char *) * (n_txt / n_proc + (int)((n_txt % n_proc) > 0) + 1));
 		errorp(txt_of_proc[i], NULL);
 
-		txt_of_proc[i][n_txt / n_proc + ((n_txt % n_proc) > i + 1)] = NULL;
+		txt_of_proc[i][n_txt / n_proc + ((n_txt % n_proc) > 0)] = (char *) NULL;
 
 	}
 
 	for( i = 0 ; i < n_txt ; ++i ){
 
-		txt_of_proc[i % n_proc][i / n_proc] = (char *) malloc(sizeof(char) * (strlen(txt_names[i]) + 1) );
+		txt_of_proc[i % n_proc][i / n_proc] = (char *) malloc(sizeof(char) * (strlen(txt_names[i]) + 1));
 		errorp(txt_of_proc[i % n_proc][i / n_proc], NULL);
 		strcpy(txt_of_proc[i % n_proc][i / n_proc], txt_names[i]);
 
@@ -165,13 +166,13 @@ int main( int argc , char **argv ){
 		error(e, "Error creating count_words process");
 
 		if( e == 0){
-			/* child */
+			
 			e = execv("count_words", txt_of_proc[i]);
-
+		
 			error(e, "Error in execution of \"count_words\"");
 
 		}
-		
+
 	}
 	
 	fd_fifo = open("myfifo", O_RDONLY);

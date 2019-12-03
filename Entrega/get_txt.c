@@ -63,9 +63,12 @@ int main( int argc , char **argv ){
 
 		e = write_aux(1, &size, 4);
 		error(e, NULL);
+		/*e = write_aux(2, (p->f)[i], size);*/
 
 		e = write_aux(1, (p->f)[i], size);
 		error(e, NULL);
+		/*e = write_aux(2, "salio", 5);*/
+
 
 		e = write_aux(1, "\0 ", 1);
 		error(e, NULL);
