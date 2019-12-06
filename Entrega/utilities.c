@@ -129,7 +129,7 @@ pair traverse_dir( char* dir_name , char** txt_names , int occupied ,
   		    }
   		}
   	}
-
+	closedir(dirp);
   	ret.f = txt_names;
   	ret.s = occupied;
   	return ret;
